@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  CREATED
+  EXECUTED
+  REJECTED
+}
+
+enum RejectReason {
+  INSUFFICIENT_CASH
+  INSUFFICIENT_ASSET
+  MARKET_SERVICE_UNAVAILABLE
+  INVALID_SYMBOL
+  INVALID_QUANTITY
+}
+
+enum AuditEventType {
+  ORDER_CREATED
+  ORDER_EXECUTED
+  ORDER_REJECTED
+}
+
+model User {
+  id           String @id @default(uuid()) @db.Uuid
+  username     String @unique
+  passwordHash String @map("password_hash")
+
+  cashBalance Decimal @default(0) @map("cash_balance") @db.Decimal(30, 10) // USD
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model AssetBalance {
+  userId   String  @map("user_id") @db.Uuid
+  symbol   String
+  quantity Decimal @default(0) @db.Decimal(30, 10)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([userId, symbol])
+  @@map("asset_balances")
+}
+
+model Order {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+
+  symbol   String
+  side     OrderSide
+  quantity Decimal   @db.Decimal(30, 10)
+  price    Decimal?  @db.Decimal(30, 10)
+
+  status       OrderStatus   @default(CREATED)
+  rejectReason RejectReason? @map("reject_reason")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("orders")
+}

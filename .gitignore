@@ -1,0 +1,11 @@
+.env
+
+node_modules/
+target/
+
+_generated_
+
+.claude/
+
+# OS
+.DS_Store

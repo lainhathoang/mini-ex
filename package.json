@@ -1,0 +1,24 @@
+{
+  "name": "err-trace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prisma": "prisma",
+    "db:push": "prisma db push --schema=crates/database/prisma/schema.prisma",
+    "seagen": "rm -rf _generated_ && sea generate entity -o _generated_ --with-serde serialize",
+    "spell": "typos",
+    "spell:fix": "typos --write-changes"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.32.1",
+  "devDependencies": {
+    "dotenv": "^17.3.1",
+    "prisma": "^7.5.0"
+  },
+  "dependencies": {
+    "ws": "^8.19.0"
+  }
+}
