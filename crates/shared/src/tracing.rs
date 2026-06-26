@@ -8,12 +8,7 @@ use strum::IntoEnumIterator;
 #[strum(serialize_all = "snake_case")]
 pub enum Crate {
     HttpServer,
-    EvmLib,
-    EvmScanner,
-    EvmStream,
-    SolLib,
-    SolanaScanner,
-    SolanaStream,
+    MarketService,
 }
 
 pub fn subscribe() {

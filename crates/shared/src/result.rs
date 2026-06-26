@@ -45,6 +45,12 @@ pub enum AppErr {
         src: hyper::http::uri::InvalidUri,
         location: Location,
     },
+
+    #[error("HttpClient: {src}")]
+    HttpClient {
+        src: reqwest::Error,
+        location: Location,
+    },
 }
 
 macro_rules! impl_from_tracked {
@@ -67,6 +73,7 @@ impl_from_tracked!(sea_orm::error::DbErr, Database);
 impl_from_tracked!(std::env::VarError, ReadEnv);
 impl_from_tracked!(url::ParseError, ParseUrl);
 impl_from_tracked!(hyper::http::uri::InvalidUri, ParseUri);
+impl_from_tracked!(reqwest::Error, HttpClient);
 
 pub type Rs<T> = Result<T, AppErr>;
 
@@ -80,6 +87,7 @@ impl AppErr {
             AppErr::ReadEnv { location, .. } => location,
             AppErr::ParseUrl { location, .. } => location,
             AppErr::ParseUri { location, .. } => location,
+            AppErr::HttpClient { location, .. } => location,
         }
     }
 

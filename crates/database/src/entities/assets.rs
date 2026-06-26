@@ -4,14 +4,14 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
-#[sea_orm(table_name = "asset_balances")]
+#[sea_orm(table_name = "assets")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub user_id: Uuid,
-    #[sea_orm(primary_key, auto_increment = false, column_type = "Text")]
+    #[sea_orm(column_type = "Text")]
     pub symbol: String,
+    #[sea_orm(primary_key, auto_increment = false, column_type = "Text")]
+    pub name: String,
     #[sea_orm(column_type = "Decimal(Some((30, 10)))")]
-    pub quantity: Decimal,
+    pub price: Decimal,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }

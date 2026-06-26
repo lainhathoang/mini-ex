@@ -5,6 +5,7 @@ use crate::result::Rs;
 pub enum Env {
     DatabaseUrl,
     AccessTokenKey,
+    CoingeckoApiKey,
 }
 
 /// Loads environment variables from .env file if present
@@ -25,6 +26,7 @@ impl Env {
         match self {
             Self::DatabaseUrl => "DATABASE_URL".into(),
             Self::AccessTokenKey => "ACCESS_TOKEN_KEY".into(),
+            Self::CoingeckoApiKey => "COINGECKO_API_KEY".into(),
         }
     }
 }
