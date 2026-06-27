@@ -9,7 +9,7 @@ pub struct AppState {
 
 impl AppState {
     pub async fn new() -> Rs<AppState> {
-        let db_url = shared::env::read(Env::DatabaseUrl)?;
+        let db_url = shared::env::read(Env::MarketDatabaseUrl)?;
         let db = database::establish_connection(&db_url).await?;
         Ok(Self { db })
     }

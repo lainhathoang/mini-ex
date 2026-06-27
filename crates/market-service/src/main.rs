@@ -26,6 +26,7 @@ async fn main() -> Rs<()> {
     tokio::spawn(coingecko::run(state.db.clone(), api_key));
 
     let app = Router::new()
+        .route("/", get(async || "Hello from market-service!"))
         .route(
             "/docs/openapi.yml",
             get(async || include_str!("../docs/openapi.yml")),
