@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mini-ex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ---- Design tokens (from DESIGN.md — Binance system) ---- */
+    :root {
+      --primary: #fcd535;
+      --primary-active: #f0b90b;
+      --primary-disabled: #3a3a1f;
+      --canvas-dark: #0b0e11;
+      --surface-card-dark: #1e2329;
+      --surface-elevated-dark: #2b3139;
+      --hairline-on-dark: #2b3139;
+      --body: #eaecef;
+      --muted: #707a8a;
+      --muted-strong: #929aa5;
+      --on-primary: #181a20;
+      --on-dark: #ffffff;
+      --trading-up: #0ecb81;
+      --trading-down: #f6465d;
+      --info: #3b82f6;
+
+      --r-sm: 4px;
+      --r-md: 6px;
+      --r-lg: 8px;
+      --r-xl: 12px;
+      --r-pill: 9999px;
+
+      --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-num: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--canvas-dark);
+      color: var(--body);
+      font-family: var(--font-display);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+
+    .num { font-family: var(--font-num); }
+    .up { color: var(--trading-up); }
+    .down { color: var(--trading-down); }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+
+    /* ---- Top nav ---- */
+    .nav {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--hairline-on-dark);
+    }
+    .wordmark {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: -0.3px;
+    }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { color: var(--muted-strong); font-size: 14px; }
+
+    /* ---- Layout ---- */
+    .container { max-width: 1280px; margin: 0 auto; padding: 40px 24px; }
+    .auth-wrap {
+      max-width: 420px;
+      margin: 56px auto;
+      padding: 0 24px;
+    }
+
+    h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 8px; color: var(--on-dark); }
+    h2 { font-size: 20px; font-weight: 600; margin: 0 0 16px; color: var(--on-dark); }
+    .sub { color: var(--muted); margin: 0 0 32px; }
+
+    /* ---- Card ---- */
+    .card {
+      background: var(--surface-card-dark);
+      border-radius: var(--r-xl);
+      padding: 24px;
+    }
+    .grid { display: grid; gap: 24px; grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ---- Tabs ---- */
+    .tabs { display: flex; gap: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--hairline-on-dark); }
+    .tab {
+      background: none; border: none; color: var(--muted);
+      font-family: var(--font-display); font-size: 16px; font-weight: 600;
+      padding: 0 0 12px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .tab.active { color: var(--on-dark); border-bottom-color: var(--primary); }
+
+    /* ---- Forms ---- */
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; color: var(--muted-strong); margin-bottom: 8px; }
+    input, select {
+      width: 100%;
+      height: 40px;
+      background: var(--surface-elevated-dark);
+      border: 1px solid var(--hairline-on-dark);
+      border-radius: var(--r-md);
+      color: var(--on-dark);
+      font-family: var(--font-display);
+      font-size: 14px;
+      padding: 0 16px;
+      outline: none;
+    }
+    input.num { font-family: var(--font-num); }
+    input:focus, select:focus { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); border-color: var(--info); }
+    .row { display: flex; gap: 12px; }
+    .row > * { flex: 1; }
+
+    /* ---- Buttons ---- */
+    .btn {
+      height: 40px;
+      padding: 0 24px;
+      border: none;
+      border-radius: var(--r-md);
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--primary-active); }
+    .btn-primary:disabled { background: var(--primary-disabled); color: var(--muted); cursor: not-allowed; }
+    .btn-pill { border-radius: var(--r-pill); padding: 0 28px; }
+    .btn-secondary {
+      background: var(--surface-card-dark);
+      color: var(--on-dark);
+      border: 1px solid var(--hairline-on-dark);
+    }
+    .btn-full { width: 100%; }
+    .btn-sm { height: 32px; padding: 0 16px; font-size: 13px; }
+
+    /* ---- Alert ---- */
+    .alert {
+      border-radius: var(--r-lg);
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      border: 1px solid;
+    }
+    .alert-error { color: var(--trading-down); border-color: var(--trading-down); background: rgba(246, 70, 93, 0.08); }
+    .alert-ok { color: var(--trading-up); border-color: var(--trading-up); background: rgba(14, 203, 129, 0.08); }
+
+    /* ---- Table ---- */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; color: var(--muted); font-weight: 500; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 0; border-bottom: 1px solid var(--hairline-on-dark);
+    }
+    td { padding: 12px 0; border-bottom: 1px solid var(--hairline-on-dark); font-size: 14px; }
+    td.r, th.r { text-align: right; }
+
+    .stat { font-family: var(--font-num); font-size: 28px; font-weight: 700; color: var(--primary); }
+    .stat-label { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+
+    /* ---- Config bar ---- */
+    .config-bar {
+      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+      padding: 12px 24px; background: var(--surface-card-dark); font-size: 12px;
+      border-bottom: 1px solid var(--hairline-on-dark);
+    }
+    .config-bar label { display: inline; margin: 0 8px 0 0; }
+    .config-bar input { width: 220px; height: 28px; display: inline-block; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <!-- Config bar: point the client at your running services -->
+  <div class="config-bar">
+    <span class="muted">Endpoints</span>
+    <span><label>Portfolio</label><input id="cfg-portfolio" class="num" value="http://localhost:8000" /></span>
+    <span><label>Market</label><input id="cfg-market" class="num" value="http://localhost:8001" /></span>
+  </div>
+
+  <!-- Top nav -->
+  <nav class="nav">
+    <span class="wordmark">MINI-EX</span>
+    <div class="nav-right">
+      <span id="nav-user" class="nav-user hidden"></span>
+      <button id="nav-signout" class="btn btn-secondary btn-sm hidden">Log Out</button>
+    </div>
+  </nav>
+
+  <!-- ============ AUTH VIEW ============ -->
+  <section id="view-auth" class="auth-wrap">
+    <h1>Welcome to mini-ex</h1>
+    <p class="sub">Sign in or create an account to start trading.</p>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="signin">Log In</button>
+        <button class="tab" data-tab="signup">Sign Up</button>
+      </div>
+
+      <div id="auth-alert"></div>
+
+      <form id="form-auth">
+        <div class="field">
+          <label for="auth-username">Username</label>
+          <input id="auth-username" autocomplete="username" placeholder="3–32 characters" />
+        </div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" type="password" autocomplete="current-password" placeholder="at least 8 characters" />
+        </div>
+        <button id="auth-submit" type="submit" class="btn btn-primary btn-pill btn-full">Log In</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD VIEW ============ -->
+  <section id="view-dashboard" class="container hidden">
+    <h1>Dashboard</h1>
+    <p class="sub" id="dash-greeting"></p>
+
+    <div id="dash-alert"></div>
+
+    <div class="grid">
+      <!-- Portfolio -->
+      <div class="card">
+        <h2>Portfolio</h2>
+        <div class="stat-label">Cash balance (USD)</div>
+        <div class="stat num" id="cash-balance">—</div>
+        <table style="margin-top: 16px;">
+          <thead><tr><th>Asset</th><th class="r">Quantity</th></tr></thead>
+          <tbody id="assets-body">
+            <tr><td colspan="2" class="muted">No assets yet.</td></tr>
+          </tbody>
+        </table>
+        <button id="btn-refresh" class="btn btn-secondary btn-sm" style="margin-top:16px;">Refresh</button>
+      </div>
+
+      <!-- Deposit -->
+      <div class="card">
+        <h2>Deposit USD</h2>
+        <p class="muted" style="margin-top:-8px;">Testing helper — credits your cash balance.</p>
+        <form id="form-deposit">
+          <div class="field">
+            <label for="deposit-amount">Amount</label>
+            <input id="deposit-amount" class="num" placeholder="10000" value="10000" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Deposit</button>
+        </form>
+      </div>
+
+      <!-- Place order -->
+      <div class="card">
+        <h2>Place Market Order</h2>
+        <form id="form-order">
+          <div class="field">
+            <label for="order-symbol">Symbol</label>
+            <select id="order-symbol"></select>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="order-side">Side</label>
+              <select id="order-side">
+                <option value="BUY">BUY</option>
+                <option value="SELL">SELL</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="order-qty">Quantity</label>
+              <input id="order-qty" class="num" placeholder="0.01" value="0.01" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Submit Order</button>
+        </form>
+      </div>
+
+      <!-- Market prices -->
+      <div class="card">
+        <h2>Markets</h2>
+        <table>
+          <thead><tr><th>Asset</th><th class="r">Price (USD)</th></tr></thead>
+          <tbody id="prices-body">
+            <tr><td colspan="2" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ---------- State & config ----------
+    const TOKEN_KEY = "mini_ex_token";
+    const els = {
+      cfgPortfolio: document.getElementById("cfg-portfolio"),
+      cfgMarket: document.getElementById("cfg-market"),
+      navUser: document.getElementById("nav-user"),
+      navSignout: document.getElementById("nav-signout"),
+      viewAuth: document.getElementById("view-auth"),
+      viewDash: document.getElementById("view-dashboard"),
+      authAlert: document.getElementById("auth-alert"),
+      dashAlert: document.getElementById("dash-alert"),
+      formAuth: document.getElementById("form-auth"),
+      authUsername: document.getElementById("auth-username"),
+      authPassword: document.getElementById("auth-password"),
+      authSubmit: document.getElementById("auth-submit"),
+      dashGreeting: document.getElementById("dash-greeting"),
+      cashBalance: document.getElementById("cash-balance"),
+      assetsBody: document.getElementById("assets-body"),
+      pricesBody: document.getElementById("prices-body"),
+      orderSymbol: document.getElementById("order-symbol"),
+      formDeposit: document.getElementById("form-deposit"),
+      formOrder: document.getElementById("form-order"),
+      btnRefresh: document.getElementById("btn-refresh"),
+    };
+
+    let mode = "signin"; // "signin" | "signup"
+    let currentUser = null;
+
+    const portfolioBase = () => els.cfgPortfolio.value.replace(/\/$/, "");
+    const marketBase = () => els.cfgMarket.value.replace(/\/$/, "");
+    const getToken = () => localStorage.getItem(TOKEN_KEY);
+    const setToken = (t) => localStorage.setItem(TOKEN_KEY, t);
+    const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+    // ---------- HTTP helper ----------
+    async function api(base, path, { method = "GET", body, auth = false } = {}) {
+      const headers = {};
+      if (body !== undefined) headers["Content-Type"] = "application/json";
+      if (auth) {
+        const t = getToken();
+        if (t) headers["Authorization"] = "Bearer " + t;
+      }
+      const res = await fetch(base + path, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      const text = await res.text();
+      let data = null;
+      if (text) { try { data = JSON.parse(text); } catch { data = text; } }
+      if (!res.ok) {
+        const msg = (data && data.msg) || (typeof data === "string" && data) || ("Request failed (" + res.status + ")");
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    // ---------- Alerts ----------
+    function showAlert(el, message, kind = "error") {
+      el.innerHTML = '<div class="alert alert-' + (kind === "ok" ? "ok" : "error") + '">' + escapeHtml(message) + "</div>";
+    }
+    function clearAlert(el) { el.innerHTML = ""; }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    // ---------- Auth tabs ----------
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        mode = tab.dataset.tab;
+        els.authSubmit.textContent = mode === "signin" ? "Log In" : "Create Account";
+        els.authPassword.autocomplete = mode === "signin" ? "current-password" : "new-password";
+        clearAlert(els.authAlert);
+      });
+    });
+
+    // ---------- Auth submit ----------
+    els.formAuth.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAlert(els.authAlert);
+      const username = els.authUsername.value.trim();
+      const password = els.authPassword.value;
+      if (username.length < 3 || username.length > 32) return showAlert(els.authAlert, "Username must be 3–32 characters.");
+      if (password.length < 8) return showAlert(els.authAlert, "Password must be at least 8 characters.");
+
+      els.authSubmit.disabled = true;
+      try {
+        if (mode === "signup") {
+          await api(portfolioBase(), "/auth/sign-up", { method: "POST", body: { username, password } });
+          // Auto sign-in after successful registration.
+        }
+        const { token } = await api(portfolioBase(), "/auth/sign-in", { method: "POST", body: { username, password } });
+        setToken(token);
+        await enterDashboard();
+      } catch (err) {
+        showAlert(els.authAlert, err.message);
+      } finally {
+        els.authSubmit.disabled = false;
+      }
+    });
+
+    // ---------- Sign out ----------
+    els.navSignout.addEventListener("click", async () => {
+      try { await api(portfolioBase(), "/auth/sign-out", { method: "POST", auth: true }); } catch {}
+      clearToken();
+      currentUser = null;
+      showAuth();
+    });
+
+    // ---------- Deposit ----------
+    els.formDeposit.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAlert(els.dashAlert);
+      const amount = document.getElementById("deposit-amount").value.trim();
+      try {
+        const { cash_balance } = await api(portfolioBase(), "/funds/deposit", { method: "POST", auth: true, body: { amount } });
+        els.cashBalance.textContent = fmtNum(cash_balance);
+        showAlert(els.dashAlert, "Deposited " + amount + " USD.", "ok");
+      } catch (err) { handleAuthError(err); showAlert(els.dashAlert, err.message); }
+    });
+
+    // ---------- Place order ----------
+    els.formOrder.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAlert(els.dashAlert);
+      const symbol = els.orderSymbol.value;
+      const side = document.getElementById("order-side").value;
+      const quantity = document.getElementById("order-qty").value.trim();
+      const client_order_id = crypto.randomUUID();
+      try {
+        const order = await api(portfolioBase(), "/orders", {
+          method: "POST", auth: true, body: { symbol, side, quantity, client_order_id },
+        });
+        if (order.status === "REJECTED") {
+          showAlert(els.dashAlert, "Order rejected: " + (order.reject_reason || "unknown"));
+        } else {
+          showAlert(els.dashAlert, side + " " + quantity + " " + symbol + " — " + order.status +
+            (order.price ? " @ " + fmtNum(order.price) : ""), "ok");
+        }
+        await loadPortfolio();
+      } catch (err) { handleAuthError(err); showAlert(els.dashAlert, err.message); }
+    });
+
+    els.btnRefresh.addEventListener("click", () => loadPortfolio());
+
+    // ---------- Loaders ----------
+    async function loadProfile() {
+      // /users/me returns { id, username, created_at }; id is the UUID used by /portfolio/{userId}.
+      currentUser = await api(portfolioBase(), "/users/me", { auth: true });
+      els.navUser.textContent = currentUser.username;
+      els.dashGreeting.textContent = "Signed in as " + currentUser.username;
+    }
+
+    async function loadPortfolio() {
+      if (!currentUser) return;
+      try {
+        const p = await api(portfolioBase(), "/portfolio/" + encodeURIComponent(currentUser.id), { auth: true });
+        els.cashBalance.textContent = fmtNum(p.cash_balance);
+        renderAssets(p.assets || []);
+      } catch (err) {
+        handleAuthError(err);
+        // Portfolio may 404/400 before any deposit — show zero state, not a hard error.
+        els.cashBalance.textContent = "0";
+        renderAssets([]);
+      }
+    }
+
+    async function loadPrices() {
+      try {
+        const { prices } = await api(marketBase(), "/prices");
+        renderPrices(prices || []);
+        renderSymbolOptions(prices || []);
+      } catch (err) {
+        els.pricesBody.innerHTML = '<tr><td colspan="2" class="muted">Market service unavailable.</td></tr>';
+      }
+    }
+
+    // ---------- Renderers ----------
+    function renderAssets(assets) {
+      if (!assets.length) {
+        els.assetsBody.innerHTML = '<tr><td colspan="2" class="muted">No assets yet.</td></tr>';
+        return;
+      }
+      els.assetsBody.innerHTML = assets.map((a) =>
+        "<tr><td>" + escapeHtml(a.symbol.toUpperCase()) + '</td><td class="r num">' + escapeHtml(a.quantity) + "</td></tr>"
+      ).join("");
+    }
+
+    function renderPrices(prices) {
+      if (!prices.length) {
+        els.pricesBody.innerHTML = '<tr><td colspan="2" class="muted">No prices.</td></tr>';
+        return;
+      }
+      els.pricesBody.innerHTML = prices.map((p) =>
+        "<tr><td>" + escapeHtml(p.symbol.toUpperCase()) + ' <span class="muted">' + escapeHtml(p.name) +
+        '</span></td><td class="r num">' + fmtNum(p.price) + "</td></tr>"
+      ).join("");
+    }
+
+    function renderSymbolOptions(prices) {
+      const prev = els.orderSymbol.value;
+      els.orderSymbol.innerHTML = prices.map((p) =>
+        '<option value="' + escapeHtml(p.symbol) + '">' + escapeHtml(p.symbol.toUpperCase()) + "</option>"
+      ).join("");
+      if (prev) els.orderSymbol.value = prev;
+    }
+
+    function fmtNum(s) {
+      const n = Number(s);
+      if (Number.isNaN(n)) return s;
+      return n.toLocaleString("en-US", { maximumFractionDigits: 8 });
+    }
+
+    // ---------- View switching ----------
+    function showAuth() {
+      els.viewAuth.classList.remove("hidden");
+      els.viewDash.classList.add("hidden");
+      els.navUser.classList.add("hidden");
+      els.navSignout.classList.add("hidden");
+    }
+
+    async function enterDashboard() {
+      els.viewAuth.classList.add("hidden");
+      els.viewDash.classList.remove("hidden");
+      els.navUser.classList.remove("hidden");
+      els.navSignout.classList.remove("hidden");
+      clearAlert(els.dashAlert);
+      try {
+        await loadProfile();
+        await Promise.all([loadPortfolio(), loadPrices()]);
+      } catch (err) {
+        handleAuthError(err);
+      }
+    }
+
+    function handleAuthError(err) {
+      if (err && err.status === 401) {
+        clearToken();
+        currentUser = null;
+        showAuth();
+        showAlert(els.authAlert, "Session expired. Please log in again.");
+      }
+    }
+
+    // ---------- Boot ----------
+    (async function init() {
+      if (getToken()) {
+        try { await enterDashboard(); return; } catch { clearToken(); }
+      }
+      showAuth();
+    })();
+  </script>
+</body>
+</html>
