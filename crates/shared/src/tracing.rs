@@ -7,7 +7,7 @@ use strum::IntoEnumIterator;
 #[derive(strum::Display, strum::EnumIter)]
 #[strum(serialize_all = "snake_case")]
 pub enum Crate {
-    HttpServer,
+    PortfolioService,
     MarketService,
 }
 

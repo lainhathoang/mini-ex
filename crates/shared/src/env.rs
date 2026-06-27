@@ -6,11 +6,13 @@ use crate::result::Rs;
 
 #[derive(Debug, Display)]
 pub enum Env {
-    DatabaseUrl,
+    MarketDatabaseUrl,
+    PortfolioDatabaseUrl,
     AccessTokenKey,
     CoingeckoApiKey,
-    HttpServerPort,
+    PortfolioServicePort,
     MarketServicePort,
+    MarketServiceUrl,
 }
 
 /// Loads environment variables from .env file if present
@@ -29,11 +31,27 @@ pub fn read(env: Env) -> Rs<String> {
 impl Env {
     fn key(&self) -> Cow<'static, str> {
         match self {
-            Self::DatabaseUrl => "DATABASE_URL".into(),
+            Self::MarketDatabaseUrl => "MARKET_DATABASE_URL".into(),
+            Self::PortfolioDatabaseUrl => "PORTFOLIO_DATABASE_URL".into(),
             Self::AccessTokenKey => "ACCESS_TOKEN_KEY".into(),
             Self::CoingeckoApiKey => "COINGECKO_API_KEY".into(),
-            Self::HttpServerPort => "HTTP_SERVER_PORST".into(),
+            Self::PortfolioServicePort => "PORTFOLIO_SERVICE_PORT".into(),
             Self::MarketServicePort => "MARKET_SERVICE_PORT".into(),
+            Self::MarketServiceUrl => "MARKET_SERVICE_URL".into(),
         }
     }
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn env_keys_map_to_expected_names() {
+//         assert_eq!(Env::MarketDatabaseUrl.key().as_ref(), "MARKET_DATABASE_URL");
+//         assert_eq!(
+//             Env::PortfolioDatabaseUrl.key().as_ref(),
+//             "PORTFOLIO_DATABASE_URL"
+//         );
+//     }
+// }
