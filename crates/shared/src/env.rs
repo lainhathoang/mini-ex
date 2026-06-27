@@ -1,11 +1,16 @@
 use std::borrow::Cow;
 
+use strum::Display;
+
 use crate::result::Rs;
 
+#[derive(Debug, Display)]
 pub enum Env {
     DatabaseUrl,
     AccessTokenKey,
     CoingeckoApiKey,
+    HttpServerPort,
+    MarketServicePort,
 }
 
 /// Loads environment variables from .env file if present
@@ -27,6 +32,8 @@ impl Env {
             Self::DatabaseUrl => "DATABASE_URL".into(),
             Self::AccessTokenKey => "ACCESS_TOKEN_KEY".into(),
             Self::CoingeckoApiKey => "COINGECKO_API_KEY".into(),
+            Self::HttpServerPort => "HTTP_SERVER_PORST".into(),
+            Self::MarketServicePort => "MARKET_SERVICE_PORT".into(),
         }
     }
 }

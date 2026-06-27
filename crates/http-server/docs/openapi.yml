@@ -1,73 +1,68 @@
 openapi: 3.1.0
 info:
-    title: API docs
+    title: HTTP Server API
     version: 1.0.0
     description: |
-        Api document.
+        Authentication, user, and realtime endpoints for the HTTP server.
+
+        Authentication uses username/password credentials. Passwords are hashed
+        with Argon2; a successful sign-in returns a JWT bearer token that must be
+        sent as `Authorization: Bearer <token>` on protected endpoints.
 
 paths:
-    /auth/signing-msg:
+    /auth/sign-up:
         post:
-            summary: Request signing message
+            summary: Register a new account
             tags:
                 - auth
             description: |
-                Generates a signing message for the given wallet address (EVM or Solana).
-                The message must be signed and submitted to the sign-in endpoint.
+                Creates an account from a username/password pair. The username
+                must be 3-32 characters and the password at least 8 characters.
+                Both are trimmed before validation. Fails if the username is
+                already taken.
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            type: object
-                            required:
-                                - address
-                            properties:
-                                address:
-                                    type: string
-                                    description: EVM or Solana wallet address
+                            $ref: "#/components/schemas/Credentials"
             responses:
-                "200":
-                    description: Signing message generated
+                "201":
+                    description: Account created
                     content:
                         application/json:
                             schema:
                                 type: object
                                 required:
-                                    - msg
+                                    - id
+                                    - username
                                 properties:
-                                    msg:
+                                    id:
                                         type: string
-                                        description: The message to be signed by the wallet
+                                        description: Generated user id
+                                    username:
+                                        type: string
+                "400":
+                    description: Validation failed or username already taken
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
 
-    /auth/sign-in-evm:
+    /auth/sign-in:
         post:
-            summary: Sign in with EVM wallet
+            summary: Sign in with credentials
             tags:
                 - auth
             description: |
-                Verifies an EVM signature against the previously requested signing message.
-                Returns a JWT token on success.
+                Verifies the username/password pair and returns a JWT bearer
+                token on success.
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            type: object
-                            required:
-                                - address
-                                - message
-                                - signature
-                            properties:
-                                address:
-                                    type: string
-                                    description: EVM wallet address (checksummed hex)
-                                message:
-                                    type: string
-                                    description: The signing message that was signed
-                                signature:
-                                    type: string
-                                    description: Hex-encoded EVM signature
+                            $ref: "#/components/schemas/Credentials"
             responses:
                 "200":
                     description: Successfully authenticated, JWT token returned
@@ -81,48 +76,37 @@ paths:
                                     token:
                                         type: string
                                         description: JWT bearer token
-
-    /auth/sign-in-sol:
-        post:
-            summary: Sign in with Solana wallet
-            tags:
-                - auth
-            description: |
-                Verifies a Solana signature against the previously requested signing message.
-                Returns a JWT token on success.
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            required:
-                                - address
-                                - message
-                                - signature
-                            properties:
-                                address:
-                                    type: string
-                                    description: Solana wallet public key (base58)
-                                message:
-                                    type: string
-                                    description: The signing message that was signed
-                                signature:
-                                    type: string
-                                    description: Base58-encoded Solana signature
-            responses:
-                "200":
-                    description: Successfully authenticated, JWT token returned
+                "400":
+                    description: Validation failed
                     content:
                         application/json:
                             schema:
-                                type: object
-                                required:
-                                    - token
-                                properties:
-                                    token:
-                                        type: string
-                                        description: JWT bearer token
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Invalid credentials
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /auth/sign-out:
+        post:
+            summary: Sign out
+            tags:
+                - auth
+            security:
+                - BearerAuth: []
+            description: |
+                Requires a valid bearer token. Returns `204 No Content`.
+            responses:
+                "204":
+                    description: Signed out
+                "401":
+                    description: Missing, invalid, or expired token
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
 
     /users/me:
         get:
@@ -132,7 +116,7 @@ paths:
             security:
                 - BearerAuth: []
             description: |
-                Returns the authenticated user's wallet address.
+                Returns the authenticated user's profile.
             responses:
                 "200":
                     description: User info returned
@@ -145,12 +129,57 @@ paths:
                                 properties:
                                     address:
                                         type: string
-                                        description: The authenticated user's wallet address
+                                        description: The authenticated user's identifier
+                "401":
+                    description: Missing, invalid, or expired token
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /random-u64:
+        get:
+            summary: Stream random u64 values (WebSocket)
+            tags:
+                - ws
+            description: |
+                WebSocket endpoint. Upgrade the connection (`Upgrade: websocket`)
+                and the server pushes a new random `u64` (as text) once per second.
+                Standard ping/pong and close frames are honored.
+            responses:
+                "101":
+                    description: Switching Protocols — WebSocket connection established
 
 components:
+    schemas:
+        Credentials:
+            type: object
+            required:
+                - username
+                - password
+            properties:
+                username:
+                    type: string
+                    minLength: 3
+                    maxLength: 32
+                password:
+                    type: string
+                    minLength: 8
+        Error:
+            type: object
+            required:
+                - code
+                - msg
+            properties:
+                code:
+                    type: integer
+                    description: HTTP status code
+                msg:
+                    type: string
+                    description: Human-readable error message
     securitySchemes:
         BearerAuth:
             type: http
             scheme: bearer
             bearerFormat: JWT
-            description: auth token
+            description: JWT bearer token from /auth/sign-in

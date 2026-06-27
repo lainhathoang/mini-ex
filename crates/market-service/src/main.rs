@@ -1,86 +1,54 @@
-use std::{str::FromStr, time::Duration};
-
-use database::{models::assets::AssetRecord, repositories, sea_orm::prelude::Decimal};
-use serde::Deserialize;
+use axum::{Router, response::Html, routing::get};
 use shared::{
-    env::Env,
-    result::{AppErr, Rs},
+    env::{Env, read},
+    result::Rs,
 };
-use tokio::time::MissedTickBehavior;
+use tower_http::cors::CorsLayer;
 
-const COINGECKO_MARKETS_URL: &str = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1";
-const SYNC_INTERVAL: Duration = Duration::from_secs(5 * 60);
+use crate::extractors::state::AppState;
 
-#[derive(Debug, Deserialize)]
-struct CoinGeckoMarket {
-    name: String,
-    symbol: String,
-    current_price: serde_json::Number,
-}
+mod coingecko;
+mod exception;
+mod extractors;
+mod handlers;
 
 #[tokio::main]
 async fn main() -> Rs<()> {
     shared::tracing::subscribe();
     shared::env::load();
 
-    let db_url = shared::env::read(Env::DatabaseUrl)?;
     let api_key = shared::env::read(Env::CoingeckoApiKey)?;
-
-    let db = database::establish_connection(&db_url).await?;
-    let client = reqwest::Client::new();
+    let state = AppState::new().await?;
 
     tracing::info!("Connected to DB");
 
-    let mut interval = tokio::time::interval(SYNC_INTERVAL);
-    interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
+    // Run the CoinGecko sync as a background service.
+    tokio::spawn(coingecko::run(state.db.clone(), api_key));
 
-    loop {
-        interval.tick().await;
+    let app = Router::new()
+        .route(
+            "/docs/openapi.yml",
+            get(async || include_str!("../docs/openapi.yml")),
+        )
+        .route(
+            "/swagger",
+            get(async || Html(include_str!("../docs/swagger.html"))),
+        )
+        .route(
+            "/scalar",
+            get(async || Html(include_str!("../docs/scalar.html"))),
+        )
+        .merge(handlers::market::routes())
+        .layer(CorsLayer::permissive())
+        .with_state(state);
 
-        if let Err(err) = sync_assets(&client, &db, &api_key).await {
-            tracing::error!("market-service sync failed, {}", err.to_string());
-        }
-    }
-}
+    let port = read(Env::MarketServicePort)?;
+    let addr = format!("0.0.0.0:{}", port);
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
 
-async fn sync_assets(
-    client: &reqwest::Client,
-    db: &database::sea_orm::DatabaseConnection,
-    api_key: &str,
-) -> Rs<()> {
-    let assets = fetch_assets(client, api_key).await?;
-    repositories::assets::upsert_many(db, &assets).await?;
+    tracing::info!("Market service is running {}", listener.local_addr()?);
 
-    tracing::info!("Synced {} assets from CoinGecko", assets.len());
+    axum::serve(listener, app).await?;
 
     Ok(())
-}
-
-async fn fetch_assets(client: &reqwest::Client, api_key: &str) -> Rs<Vec<AssetRecord>> {
-    let markets = client
-        .get(COINGECKO_MARKETS_URL)
-        .header("x-cg-demo-api-key", api_key)
-        .send()
-        .await?
-        .error_for_status()?
-        .json::<Vec<CoinGeckoMarket>>()
-        .await?;
-
-    markets
-        .into_iter()
-        .map(|market| {
-            let price = Decimal::from_str(&market.current_price.to_string()).map_err(|err| {
-                AppErr::custom(format!(
-                    "failed to parse CoinGecko price for {}: {err}",
-                    market.name
-                ))
-            })?;
-
-            Ok(AssetRecord {
-                name: market.name,
-                symbol: market.symbol,
-                price,
-            })
-        })
-        .collect()
 }

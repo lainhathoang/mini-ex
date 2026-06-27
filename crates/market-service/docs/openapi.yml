@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+    title: Market Service API
+    version: 1.0.0
+    description: |
+        Read-only market data endpoints. Asset prices are synced in the
+        background from CoinGecko and served from the database.
+
+        Symbols are stored lowercase; path lookups are normalized to lowercase
+        before matching.
+
+paths:
+    /symbols:
+        get:
+            summary: List tracked symbols
+            tags:
+                - market
+            description: |
+                Returns every tracked asset symbol.
+            responses:
+                "200":
+                    description: Symbols returned
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - symbols
+                                properties:
+                                    symbols:
+                                        type: array
+                                        items:
+                                            type: string
+                                        description: Lowercase asset symbols
+
+    /prices:
+        get:
+            summary: List all prices
+            tags:
+                - market
+            description: |
+                Returns every tracked asset with its latest price.
+            responses:
+                "200":
+                    description: Prices returned
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - prices
+                                properties:
+                                    prices:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Price"
+
+    /prices/{symbol}:
+        get:
+            summary: Get price for a single asset
+            tags:
+                - market
+            description: |
+                Returns the latest price for one asset. The `symbol` path
+                parameter is case-insensitive (normalized to lowercase).
+            parameters:
+                - name: symbol
+                  in: path
+                  required: true
+                  description: Asset symbol (case-insensitive)
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Price returned
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Price"
+                "404":
+                    description: Symbol not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    schemas:
+        Price:
+            type: object
+            required:
+                - symbol
+                - name
+                - price
+            properties:
+                symbol:
+                    type: string
+                    description: Lowercase asset symbol
+                name:
+                    type: string
+                    description: Asset display name
+                price:
+                    type: string
+                    description: Latest price, serialized as a string
+        Error:
+            type: object
+            required:
+                - code
+                - msg
+            properties:
+                code:
+                    type: integer
+                    description: HTTP status code
+                msg:
+                    type: string
+                    description: Human-readable error message

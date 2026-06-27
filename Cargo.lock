@@ -1774,12 +1774,15 @@ dependencies = [
 name = "market-service"
 version = "0.1.0"
 dependencies = [
+ "axum",
  "database",
  "reqwest",
  "serde",
  "serde_json",
  "shared",
+ "thiserror 2.0.18",
  "tokio",
+ "tower-http",
  "tracing",
 ]
 

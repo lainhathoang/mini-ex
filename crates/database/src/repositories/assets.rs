@@ -1,11 +1,23 @@
 use sea_orm::{
     ActiveValue::Set,
-    DatabaseConnection, EntityTrait,
+    ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
     sea_query::{Expr, OnConflict},
 };
 use shared::result::Rs;
 
 use crate::{entities::assets, models::assets::AssetRecord};
+
+pub async fn find_all(db: &DatabaseConnection) -> Rs<Vec<assets::Model>> {
+    assets::Entity::find().all(db).await.map_err(Into::into)
+}
+
+pub async fn find_by_symbol(db: &DatabaseConnection, symbol: &str) -> Rs<Option<assets::Model>> {
+    assets::Entity::find()
+        .filter(assets::Column::Symbol.eq(symbol))
+        .one(db)
+        .await
+        .map_err(Into::into)
+}
 
 pub async fn upsert_many(db: &DatabaseConnection, records: &[AssetRecord]) -> Rs<()> {
     if records.is_empty() {
@@ -17,7 +29,7 @@ pub async fn upsert_many(db: &DatabaseConnection, records: &[AssetRecord]) -> Rs
         .map(|record| assets::ActiveModel {
             name: Set(record.name.clone()),
             symbol: Set(record.symbol.clone()),
-            price: Set(record.price.clone()),
+            price: Set(record.price),
             ..Default::default()
         })
         .collect::<Vec<_>>();
