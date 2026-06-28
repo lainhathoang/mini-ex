@@ -1,0 +1,10 @@
+target/
+node_modules/
+_generated_/
+.git/
+.claude/
+plans/
+docs/
+.env
+.DS_Store
+**/.DS_Store

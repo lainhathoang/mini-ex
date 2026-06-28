@@ -15,15 +15,14 @@ pub enum Env {
     MarketServiceUrl,
 }
 
-/// Loads environment variables from .env file if present
+// Docker tự bơm biến env vào process environment nên comment tạm lại
 pub fn load() {
-    match dotenv::dotenv() {
-        Ok(path) => println!("Loaded .env file from: {}", path.display()),
-        Err(_) => println!("No .env file found, using system environment variables"),
-    }
+    // match dotenv::dotenv() {
+    // Ok(path) => println!("Loaded .env file from: {}", path.display()),
+    // Err(_) => println!("No .env file found, using system environment variables"),
+    // }
 }
 
-/// Reads an environment variable, panicking with a clear message if missing
 pub fn read(env: Env) -> Rs<String> {
     std::env::var(env.key().as_ref()).map_err(Into::into)
 }
@@ -41,17 +40,3 @@ impl Env {
         }
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn env_keys_map_to_expected_names() {
-//         assert_eq!(Env::MarketDatabaseUrl.key().as_ref(), "MARKET_DATABASE_URL");
-//         assert_eq!(
-//             Env::PortfolioDatabaseUrl.key().as_ref(),
-//             "PORTFOLIO_DATABASE_URL"
-//         );
-//     }
-// }

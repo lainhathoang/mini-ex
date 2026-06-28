@@ -1,0 +1,93 @@
+# Full local stack: one Postgres (two databases), SQL migration, both Rust
+# services, and the static frontend.
+#
+#   docker compose up --build
+#
+# Frontend:          http://localhost:8080
+# Portfolio service: http://localhost:8000
+# Market service:    http://localhost:8001
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Hello123}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    environment:
+      POSTGRES_ADMIN_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Hello123}@postgres:5432/postgres
+      MARKET_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Hello123}@postgres:5432/mini-ex-market-db
+      PORTFOLIO_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Hello123}@postgres:5432/mini-ex-portfolio-db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  market-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mini-ex/services:latest
+    command: ["market-service"]
+    env_file:
+      - .env
+    environment:
+      # Override .env: inside the compose network the DB host is `postgres`,
+      # not the localhost value baked into .env. `environment` wins over env_file.
+      MARKET_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Hello123}@postgres:5432/mini-ex-market-db
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  portfolio-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mini-ex/services:latest
+    command: ["portfolio-service"]
+    env_file:
+      - .env
+    environment:
+      # Override .env: DB host and market-service host differ inside the compose
+      # network (localhost in .env would not resolve). `environment` wins.
+      PORTFOLIO_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-Hello123}@postgres:5432/mini-ex-portfolio-db
+      MARKET_SERVICE_URL: http://market-service:8001
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      market-service:
+        condition: service_started
+
+  # Static frontend
+  frontend:
+    image: nginx:alpine
+    volumes:
+      - ./_mini-ex-front-end:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres-data:

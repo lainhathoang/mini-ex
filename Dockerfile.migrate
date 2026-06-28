@@ -1,0 +1,13 @@
+FROM postgres:17-alpine
+WORKDIR /migrations
+
+COPY crates/database/prisma/create-databases.sql \
+     crates/database/prisma/market.sql \
+     crates/database/prisma/portfolio.sql \
+     ./
+
+# 1. Create both databases on the maintenance connection (they may not exist yet).
+# 2. Apply each schema to its own database.
+# ON_ERROR_STOP makes psql exit non-zero on the first failing statement so the
+# migrate service is reported as failed instead of silently continuing.
+CMD ["sh", "-c", "psql \"$POSTGRES_ADMIN_URL\" -v ON_ERROR_STOP=1 -f create-databases.sql && psql \"$MARKET_DATABASE_URL\" -v ON_ERROR_STOP=1 -f market.sql && psql \"$PORTFOLIO_DATABASE_URL\" -v ON_ERROR_STOP=1 -f portfolio.sql"]
