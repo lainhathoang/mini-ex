@@ -6,8 +6,6 @@ extend-exclude = [
     "*.lock",
     "pnpm-lock.yaml",
     "Cargo.lock",
-    "solana/lib/idls/",
-    "evm/lib/abis/",
 ]
 
 [default]
@@ -18,5 +16,3 @@ extend-ignore-re = [
 
 [default.extend-words]
 # Blockchain / project-specific terms that typos flags as misspellings
-pumpfun = "pumpfun"
-uniswap = "uniswap"
