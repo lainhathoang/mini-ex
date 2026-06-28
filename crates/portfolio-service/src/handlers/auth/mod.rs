@@ -16,14 +16,14 @@ pub fn routes() -> Router<AppState> {
 }
 
 #[derive(serde::Deserialize, Validate)]
-pub(super) struct CredentialsRequest {
+pub struct CredentialsRequest {
     #[validate(length(min = 3, max = 32))]
-    pub(super) username: String,
+    pub username: String,
     #[validate(length(min = 8))]
-    pub(super) password: String,
+    pub password: String,
 }
 
-pub(super) fn validate_trimmed_credentials(username: &str, password: &str) -> HttpResult<()> {
+pub fn validate_trimmed_credentials(username: &str, password: &str) -> HttpResult<()> {
     if username.is_empty() {
         return Err(HttpException::bad_request("username cannot be empty"));
     }
