@@ -751,10 +751,14 @@ dependencies = [
 name = "database"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "dotenv",
  "sea-orm",
  "serde",
  "shared",
+ "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -1301,29 +1305,6 @@ dependencies = [
  "http",
  "http-body",
  "pin-project-lite",
-]
-
-[[package]]
-name = "http-server"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "axum",
- "axum-extra",
- "axum-macros",
- "chrono",
- "database",
- "fastwebsockets",
- "jsonwebtoken",
- "rand 0.10.1",
- "serde",
- "serde_json",
- "shared",
- "thiserror 2.0.18",
- "tokio",
- "tower-http",
- "tracing",
- "validator",
 ]
 
 [[package]]
@@ -2140,6 +2121,30 @@ checksum = "4b3eba432a00a1f6c16f39147847a870e94e2e9b992759b503e330efec778cbe"
 dependencies = [
  "once_cell",
  "regex",
+]
+
+[[package]]
+name = "portfolio-service"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "axum",
+ "axum-extra",
+ "axum-macros",
+ "chrono",
+ "database",
+ "fastwebsockets",
+ "jsonwebtoken",
+ "rand 0.10.1",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "shared",
+ "thiserror 2.0.18",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "validator",
 ]
 
 [[package]]
@@ -3715,10 +3720,11 @@ checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 
 [[package]]
 name = "uuid"
-version = "1.23.1"
+version = "1.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddd74a9687298c6858e9b88ec8935ec45d22e8fd5e6394fa1bd4e99a87789c76"
+checksum = "bf80a72845275afea99e7f2b434723d3bc7e38470fcd1c7ed39a599c73319a53"
 dependencies = [
+ "getrandom 0.4.2",
  "js-sys",
  "serde_core",
  "wasm-bindgen",

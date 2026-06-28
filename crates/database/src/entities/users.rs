@@ -13,7 +13,7 @@ pub struct Model {
     #[sea_orm(column_type = "Text")]
     pub password_hash: String,
     #[sea_orm(column_type = "Decimal(Some((30, 10)))")]
-    pub cash_balance: BigDecimal,
+    pub cash_balance: Decimal,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }

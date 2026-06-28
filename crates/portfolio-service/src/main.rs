@@ -20,7 +20,7 @@ async fn main() -> Rs<()> {
     let state = AppState::new().await?;
 
     let app = Router::new()
-        .route("/", get(async || "hello !"))
+        .route("/", get(async || "Hello from portfolio-service!"))
         .route(
             "/docs/openapi.yml",
             get(async || include_str!("../docs/openapi.yml")),
@@ -35,11 +35,13 @@ async fn main() -> Rs<()> {
         )
         .merge(handlers::auth::routes())
         .merge(handlers::users::routes())
-        .merge(handlers::ws::routes())
+        .merge(handlers::portfolio::routes())
+        .merge(handlers::orders::routes())
+        .merge(handlers::funds::routes())
         .layer(CorsLayer::permissive())
         .with_state(state);
 
-    let port = read(Env::HttpServerPort)?;
+    let port = read(Env::PortfolioServicePort)?;
     let addr = format!("0.0.0.0:{}", port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 

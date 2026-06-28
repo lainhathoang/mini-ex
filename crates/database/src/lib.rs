@@ -1,5 +1,6 @@
-mod entities;
+pub mod entities;
 pub mod enums;
+pub mod enums_parse;
 pub mod models;
 pub mod repositories;
 

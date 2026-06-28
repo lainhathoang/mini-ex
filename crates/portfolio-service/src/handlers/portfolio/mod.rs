@@ -2,8 +2,8 @@ use axum::{Router, routing::get};
 
 use crate::extractors::state::AppState;
 
-mod random_u64;
+mod get;
 
 pub fn routes() -> Router<AppState> {
-    Router::new().route("/random-u64", get(random_u64::handler))
+    Router::new().route("/portfolio/{user_id}", get(get::handler))
 }

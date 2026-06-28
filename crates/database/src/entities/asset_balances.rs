@@ -13,7 +13,7 @@ pub struct Model {
     #[sea_orm(column_type = "Decimal(Some((30, 10)))")]
     pub quantity: Decimal,
     pub created_at: DateTime,
-    pub updated_at: Option<DateTime>,
+    pub updated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

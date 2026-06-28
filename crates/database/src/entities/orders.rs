@@ -12,12 +12,14 @@ pub struct Model {
     pub id: Uuid,
     pub user_id: Uuid,
     #[sea_orm(column_type = "Text")]
+    pub client_order_id: String,
+    #[sea_orm(column_type = "Text")]
     pub symbol: String,
     pub side: OrderSide,
     #[sea_orm(column_type = "Decimal(Some((30, 10)))")]
-    pub quantity: BigDecimal,
+    pub quantity: Decimal,
     #[sea_orm(column_type = "Decimal(Some((30, 10)))", nullable)]
-    pub price: Option<BigDecimal>,
+    pub price: Option<Decimal>,
     pub status: OrderStatus,
     pub reject_reason: Option<RejectReason>,
     pub created_at: DateTime,

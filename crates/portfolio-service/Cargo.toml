@@ -1,5 +1,5 @@
 [package]
-name = "http-server"
+name = "portfolio-service"
 version = "0.1.0"
 edition = "2024"
 
@@ -19,6 +19,8 @@ fastwebsockets = { workspace = true }
 rand = { workspace = true }
 chrono = { workspace = true }
 argon2 = { workspace = true }
+
+reqwest = { workspace = true }
 
 shared = { path = "../shared" }
 database = { path = "../database" }

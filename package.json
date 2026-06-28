@@ -5,8 +5,12 @@
   "main": "index.js",
   "scripts": {
     "prisma": "prisma",
-    "db:push": "prisma db push --schema=crates/database/prisma/schema.prisma",
-    "seagen": "rm -rf _generated_ && sea generate entity -o _generated_ --with-serde serialize",
+    "db:push:market": "prisma db push --config prisma.market.config.ts",
+    "db:push:portfolio": "prisma db push --config prisma.portfolio.config.ts",
+    "db:push": "pnpm db:push:market && pnpm db:push:portfolio",
+    "seagen:market": "set -a; . ./.env; set +a; rm -rf _generated_/market && sea generate entity -u \"$MARKET_DATABASE_URL\" -o _generated_/market --with-serde serialize",
+    "seagen:portfolio": "set -a; . ./.env; set +a; rm -rf _generated_/portfolio && sea generate entity -u \"$PORTFOLIO_DATABASE_URL\" -o _generated_/portfolio --with-serde serialize",
+    "seagen": "pnpm seagen:market && pnpm seagen:portfolio",
     "spell": "typos",
     "spell:fix": "typos --write-changes"
   },

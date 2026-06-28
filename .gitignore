@@ -1,11 +1,15 @@
 .env
 
+# build
 node_modules/
 target/
 
 _generated_
 
+# Claude
 .claude/
+plans/
+docs/
 
 # OS
 .DS_Store

@@ -27,7 +27,7 @@ pub async fn handler(
 
     let user = repositories::users::find_by_username(&db, username)
         .await?
-        .ok_or_else(|| HttpException::unauthorized("Invalid credentials"))?;
+        .ok_or_else(|| HttpException::unauthorized("invalid credentials"))?;
 
     verify_password(password, &user.password_hash)?;
 
@@ -41,5 +41,5 @@ fn verify_password(password: &str, password_hash: &str) -> HttpResult<()> {
 
     Argon2::default()
         .verify_password(password.as_bytes(), &parsed_hash)
-        .map_err(|_| HttpException::unauthorized("Invalid credentials"))
+        .map_err(|_| HttpException::unauthorized("invalid credentials"))
 }

@@ -61,7 +61,10 @@ hyper = { version = "1" }
 hyper-util = { version = "0.1", features = ["tokio"] }
 http-body-util = { version = "0.1" }
 url = { version = "2" }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
 
 # bytes
 bytes = { version = "1" }
@@ -76,9 +79,6 @@ webpki-roots = { version = "1" }
 bs58 = { version = "0.5" }
 base64 = { version = "0.22" }
 
-# evm
-alloy = { version = "2" }
-
 # enums util
 strum = { version = "0.28", features = ["derive"] }
 
@@ -88,3 +88,6 @@ argon2 = { version = "0.5.3" }
 
 # time 
 chrono = { version = "0.4.45" }
+
+# uuid
+uuid = { version = "1.23.4", features = ["v7"] }

@@ -34,21 +34,10 @@ model User {
 
   cashBalance Decimal @default(0) @map("cash_balance") @db.Decimal(30, 10) // USD
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("users")
-}
-
-model Asset {
-  name   String  @id
-  symbol String
-  price  Decimal @db.Decimal(30, 10)
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("assets")
 }
 
 model AssetBalance {
@@ -56,8 +45,8 @@ model AssetBalance {
   symbol   String
   quantity Decimal @default(0) @db.Decimal(30, 10)
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@id([userId, symbol])
   @@map("asset_balances")
@@ -67,6 +56,8 @@ model Order {
   id     String @id @default(uuid()) @db.Uuid
   userId String @map("user_id") @db.Uuid
 
+  clientOrderId String @map("client_order_id")
+
   symbol   String
   side     OrderSide
   quantity Decimal   @db.Decimal(30, 10)
@@ -75,8 +66,9 @@ model Order {
   status       OrderStatus   @default(CREATED)
   rejectReason RejectReason? @map("reject_reason")
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([userId, clientOrderId])
   @@map("orders")
 }

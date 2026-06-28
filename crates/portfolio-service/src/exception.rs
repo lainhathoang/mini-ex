@@ -27,6 +27,18 @@ pub enum HttpException {
         location: Location,
     },
 
+    #[error("Forbidden: {msg}")]
+    Forbidden {
+        msg: Cow<'static, str>,
+        location: Location,
+    },
+
+    #[error("NotFound: {msg}")]
+    NotFound {
+        msg: Cow<'static, str>,
+        location: Location,
+    },
+
     #[error("msg: {msg}")]
     Internal {
         msg: Cow<'static, str>,
@@ -69,6 +81,8 @@ impl HttpException {
             Self::Validation { location, .. } => location,
             Self::BadRequest { location, .. } => location,
             Self::Unauthorized { location, .. } => location,
+            Self::Forbidden { location, .. } => location,
+            Self::NotFound { location, .. } => location,
             Self::Internal { location, .. } => location,
             Self::ParseInt { location, .. } => location,
             Self::App(error) => error.location(),
@@ -111,6 +125,22 @@ impl HttpException {
             location: core::panic::Location::caller(),
         }
     }
+
+    #[track_caller]
+    pub fn forbidden<E: Into<Cow<'static, str>>>(error: E) -> Self {
+        Self::Forbidden {
+            msg: error.into(),
+            location: core::panic::Location::caller(),
+        }
+    }
+
+    #[track_caller]
+    pub fn not_found<E: Into<Cow<'static, str>>>(error: E) -> Self {
+        Self::NotFound {
+            msg: error.into(),
+            location: core::panic::Location::caller(),
+        }
+    }
 }
 
 impl IntoResponse for HttpException {
@@ -118,6 +148,8 @@ impl IntoResponse for HttpException {
         let status_code = match &self {
             Self::BadRequest { .. } | Self::Validation { .. } => StatusCode::BAD_REQUEST,
             Self::Unauthorized { .. } => StatusCode::UNAUTHORIZED,
+            Self::Forbidden { .. } => StatusCode::FORBIDDEN,
+            Self::NotFound { .. } => StatusCode::NOT_FOUND,
             _ => {
                 self.trace();
                 StatusCode::INTERNAL_SERVER_ERROR
