@@ -170,7 +170,10 @@ async fn concurrent_same_key_places_exactly_one_order() {
     );
 
     // Both racing requests resolve to the same single order...
-    assert_eq!(a, b, "concurrent same-key requests must resolve to one order");
+    assert_eq!(
+        a, b,
+        "concurrent same-key requests must resolve to one order"
+    );
     // ...and exactly one row exists for (user, key).
     let count = orders::Entity::find()
         .filter(orders::Column::UserId.eq(user_id))

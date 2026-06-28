@@ -31,7 +31,9 @@ pub async fn handler(
         .ok_or_else(|| HttpException::not_found("order not found"))?;
 
     if order.user_id != user_id {
-        return Err(HttpException::forbidden("cannot access another user's order"));
+        return Err(HttpException::forbidden(
+            "cannot access another user's order",
+        ));
     }
 
     Ok(Json(order.into()))
