@@ -9,7 +9,6 @@ _generated_
 # Claude
 .claude/
 plans/
-docs/
 
 # OS
 .DS_Store
