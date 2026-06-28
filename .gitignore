@@ -8,7 +8,10 @@ _generated_
 
 # Claude
 .claude/
-plans/
+
+# only root-level (same level as .env)
+/plans/
+/docs/
 
 # OS
 .DS_Store
