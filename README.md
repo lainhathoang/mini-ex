@@ -117,6 +117,6 @@ Compose overrides the database/host values from `.env` because, inside the
 compose network, the DB host is `postgres` and services reach each other by
 service name (not `localhost`).
 
-### Demo video
+### Demo Video for Test Instructions
 
 - https://youtu.be/pL1Pmh8f3NI
