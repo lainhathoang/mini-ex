@@ -1,7 +1,4 @@
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use axum::{Router, routing::get};
 use chrono::NaiveDateTime;
 use database::{
     entities::orders,
@@ -14,10 +11,11 @@ use crate::extractors::state::AppState;
 mod create;
 mod execution;
 mod get;
+mod list;
 
 pub fn routes() -> Router<AppState> {
     Router::new()
-        .route("/orders", post(create::handler))
+        .route("/orders", get(list::handler).post(create::handler))
         .route("/orders/{order_id}", get(get::handler))
 }
 

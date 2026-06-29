@@ -308,6 +308,39 @@
         font-size: 13px;
         margin-bottom: 4px;
       }
+      .section {
+        margin-top: 24px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--r-pill);
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .pill-buy,
+      .pill-executed {
+        color: var(--trading-up);
+        background: rgba(14, 203, 129, 0.12);
+      }
+      .pill-sell,
+      .pill-rejected {
+        color: var(--trading-down);
+        background: rgba(246, 70, 93, 0.12);
+      }
+      .pill-created {
+        color: var(--primary);
+        background: rgba(252, 213, 53, 0.12);
+      }
+      .order-meta {
+        margin-top: 4px;
+        font-size: 12px;
+      }
 
       /* ---- Config bar ---- */
       .config-bar {
@@ -506,6 +539,29 @@
           </table>
         </div>
       </div>
+
+      <div class="card section">
+        <h2>Order History</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th class="r">Quantity</th>
+                <th class="r">Price (USD)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body">
+              <tr>
+                <td colspan="6" class="muted">No orders yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <script>
@@ -528,6 +584,7 @@
         cashBalance: document.getElementById("cash-balance"),
         assetsBody: document.getElementById("assets-body"),
         pricesBody: document.getElementById("prices-body"),
+        ordersBody: document.getElementById("orders-body"),
         orderSymbol: document.getElementById("order-symbol"),
         formDeposit: document.getElementById("form-deposit"),
         formOrder: document.getElementById("form-order"),
@@ -724,14 +781,14 @@
               "ok",
             );
           }
-          await loadPortfolio();
+          await Promise.all([loadPortfolio(), loadOrders()]);
         } catch (err) {
           handleAuthError(err);
           showAlert(els.dashAlert, err.message);
         }
       });
 
-      els.btnRefresh.addEventListener("click", () => loadPortfolio());
+      els.btnRefresh.addEventListener("click", () => loadDashboardData());
 
       // ---------- Loaders ----------
       async function loadProfile() {
@@ -767,6 +824,17 @@
         } catch (err) {
           els.pricesBody.innerHTML =
             '<tr><td colspan="2" class="muted">Market service unavailable.</td></tr>';
+        }
+      }
+
+      async function loadOrders() {
+        try {
+          const orders = await api(portfolioBase(), "/orders", { auth: true });
+          renderOrders(orders || []);
+        } catch (err) {
+          handleAuthError(err);
+          els.ordersBody.innerHTML =
+            '<tr><td colspan="6" class="muted">Orders unavailable.</td></tr>';
         }
       }
 
@@ -809,6 +877,46 @@
           .join("");
       }
 
+      function renderOrders(orders) {
+        if (!orders.length) {
+          els.ordersBody.innerHTML =
+            '<tr><td colspan="6" class="muted">No orders yet.</td></tr>';
+          return;
+        }
+        els.ordersBody.innerHTML = orders
+          .map((order) => {
+            const status = String(order.status || "");
+            const side = String(order.side || "");
+            const reason = order.reject_reason
+              ? '<div class="muted order-meta">' +
+                escapeHtml(order.reject_reason) +
+                "</div>"
+              : "";
+            return (
+              "<tr><td class=\"num\">" +
+              escapeHtml(fmtDateTime(order.created_at)) +
+              "</td><td>" +
+              escapeHtml(String(order.symbol || "").toUpperCase()) +
+              "</td><td><span class=\"pill pill-" +
+              escapeHtml(side.toLowerCase()) +
+              "\">" +
+              escapeHtml(side) +
+              "</span></td><td class=\"r num\">" +
+              escapeHtml(order.quantity || "—") +
+              "</td><td class=\"r num\">" +
+              escapeHtml(order.price ? fmtNum(order.price) : "—") +
+              "</td><td><span class=\"pill pill-" +
+              escapeHtml(status.toLowerCase()) +
+              "\">" +
+              escapeHtml(status) +
+              "</span>" +
+              reason +
+              "</td></tr>"
+            );
+          })
+          .join("");
+      }
+
       function renderSymbolOptions(prices) {
         const prev = els.orderSymbol.value;
         els.orderSymbol.innerHTML = prices
@@ -830,6 +938,15 @@
         return n.toLocaleString("en-US", { maximumFractionDigits: 8 });
       }
 
+      function fmtDateTime(s) {
+        if (!s) return "—";
+        return String(s).replace("T", " ").slice(0, 19);
+      }
+
+      function loadDashboardData() {
+        return Promise.all([loadPortfolio(), loadPrices(), loadOrders()]);
+      }
+
       // ---------- View switching ----------
       function showAuth() {
         els.viewAuth.classList.remove("hidden");
@@ -846,7 +963,7 @@
         clearAlert(els.dashAlert);
         try {
           await loadProfile();
-          await Promise.all([loadPortfolio(), loadPrices()]);
+          await loadDashboardData();
         } catch (err) {
           handleAuthError(err);
         }

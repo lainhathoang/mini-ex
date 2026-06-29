@@ -1,5 +1,5 @@
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter, Set,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter, QueryOrder, Set,
     prelude::{Decimal, Uuid},
 };
 use shared::result::Rs;
@@ -55,6 +55,16 @@ pub async fn find_by_client_order_id(
         .filter(orders::Column::UserId.eq(user_id))
         .filter(orders::Column::ClientOrderId.eq(client_order_id))
         .one(conn)
+        .await
+        .map_err(Into::into)
+}
+
+pub async fn find_by_user(conn: &impl ConnectionTrait, user_id: Uuid) -> Rs<Vec<orders::Model>> {
+    orders::Entity::find()
+        .filter(orders::Column::UserId.eq(user_id))
+        .order_by_desc(orders::Column::CreatedAt)
+        .order_by_desc(orders::Column::Id)
+        .all(conn)
         .await
         .map_err(Into::into)
 }
