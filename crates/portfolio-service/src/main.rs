@@ -19,6 +19,8 @@ async fn main() -> Rs<()> {
 
     let state = AppState::new().await?;
 
+    tracing::info!("Connected to DB");
+
     let app = Router::new()
         .route("/", get(async || "Hello from portfolio-service!"))
         .route(
