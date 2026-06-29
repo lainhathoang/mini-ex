@@ -21,6 +21,8 @@ pub struct NewOrder<'a> {
 }
 
 pub async fn create(conn: &impl ConnectionTrait, new: NewOrder<'_>) -> Rs<orders::Model> {
+    let now = chrono::Utc::now().naive_utc();
+
     orders::ActiveModel {
         id: Set(Uuid::now_v7()),
         user_id: Set(new.user_id),
@@ -31,8 +33,8 @@ pub async fn create(conn: &impl ConnectionTrait, new: NewOrder<'_>) -> Rs<orders
         price: Set(new.price),
         status: Set(new.status),
         reject_reason: Set(new.reject_reason),
-        created_at: Set(Default::default()),
-        updated_at: Set(Default::default()),
+        created_at: Set(now),
+        updated_at: Set(now),
     }
     .insert(conn)
     .await
